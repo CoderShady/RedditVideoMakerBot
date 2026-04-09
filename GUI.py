@@ -2,6 +2,7 @@ import webbrowser
 from pathlib import Path
 
 # Used "tomlkit" instead of "toml" because it doesn't change formatting on "dump"
+import os
 import tomlkit
 from flask import (
     Flask,
@@ -10,6 +11,7 @@ from flask import (
     request,
     send_from_directory,
     url_for,
+    abort,
 )
 
 import utils.gui_utils as gui
@@ -23,7 +25,22 @@ PORT = 4000
 app = Flask(__name__, template_folder="GUI")
 
 # Configure secret key only to use 'flash'
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = os.urandom(24)
+
+# CSRF Protection to prevent remote reconfiguration
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        origin = request.headers.get("Origin")
+        referer = request.headers.get("Referer")
+        allowed_origins = [f"http://{HOST}:{PORT}", f"http://127.0.0.1:{PORT}"]
+        
+        if origin and origin not in allowed_origins:
+            abort(403)
+        if referer and not any(referer.startswith(o) for o in allowed_origins):
+            abort(403)
+        if not origin and not referer:
+            abort(403)
 
 
 # Ensure responses aren't cached
