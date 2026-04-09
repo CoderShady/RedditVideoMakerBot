@@ -44,9 +44,11 @@ def check(value, checks):
     if value == "False":
         value = ""
 
+    TYPE_MAP = {"bool": bool, "int": int, "float": float, "str": str}
+
     if not incorrect and "type" in checks:
         try:
-            value = eval(checks["type"])(value)  # fixme remove eval
+            value = TYPE_MAP.get(checks["type"], str)(value)
         except Exception:
             incorrect = True
 
