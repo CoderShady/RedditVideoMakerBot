@@ -68,12 +68,17 @@ class ProgressFfmpeg(threading.Thread):
 
 
 def name_normalize(name: str) -> str:
-    name = re.sub(r'[?\\"%*:|<>]', "", name)
     name = re.sub(r"( [w,W]\s?\/\s?[o,O,0])", r" without", name)
     name = re.sub(r"( [w,W]\s?\/)", r" with", name)
     name = re.sub(r"(\d+)\s?\/\s?(\d+)", r"\1 of \2", name)
     name = re.sub(r"(\w+)\s?\/\s?(\w+)", r"\1 or \2", name)
-    name = re.sub(r"\/", r"", name)
+    
+    # Change: Remove all characters except letters, numbers, spaces, hyphens, and underscores.
+    # This prevents shell injection ($(command)) and path traversal (../../)
+    name = re.sub(r'[^\w\s\-_]', '', name)
+    
+    # Remove leading/trailing spaces to prevent invalid names
+    name = name.strip()
 
     lang = settings.config["reddit"]["thread"]["post_lang"]
     if lang:
@@ -82,6 +87,7 @@ def name_normalize(name: str) -> str:
         return translated_name
     else:
         return name
+
 
 
 def prepare_background(reddit_id: str, W: int, H: int) -> str:
