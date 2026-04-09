@@ -25,12 +25,15 @@ def check(value, checks, name):
     def get_check_value(key, default_result):
         return checks[key] if key in checks else default_result
 
+    TYPE_MAP = {"bool": bool, "int": int, "float": float, "str": str}
+
     incorrect = False
     if value == {}:
         incorrect = True
     if not incorrect and "type" in checks:
         try:
-            value = eval(checks["type"])(value)  # fixme remove eval
+            value = TYPE_MAP.get(checks["type"], str)(value)
+
         except:
             incorrect = True
 
@@ -78,7 +81,7 @@ def check(value, checks, name):
             + str(name)
             + "[#F7768E bold]=",
             extra_info=get_check_value("explanation", ""),
-            check_type=eval(get_check_value("type", "False")),  # fixme remove eval
+            check_type=TYPE_MAP.get(get_check_value("type", ""), False),
             default=get_check_value("default", NotImplemented),
             match=get_check_value("regex", ""),
             err_message=get_check_value("input_error", "Incorrect input"),
